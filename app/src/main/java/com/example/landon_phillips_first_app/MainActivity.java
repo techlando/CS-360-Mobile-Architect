@@ -2,6 +2,7 @@ package com.example.landon_phillips_first_app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -15,7 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 public class MainActivity extends AppCompatActivity {
 
     EditText etEmail, etPassword;
-    Button btnLogin, btnCreateAccount;
+    Button btnLogin, btnCreateAccount, btnForgotPassword;
     Database db;
 
     @Override
@@ -34,57 +35,62 @@ public class MainActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         btnCreateAccount = findViewById(R.id.btnCreateAccount);
+        btnForgotPassword = findViewById(R.id.btnForgotPassword);
 
         db = new Database(this);
+
+        btnForgotPassword.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ForgotPasswordActivity.class);
+            startActivity(intent);
+        });
 
         btnLogin.setOnClickListener(v -> {
             String username = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
+            if (!validateLoginInput(username, password)) {
+                return;
+            }
+
             if (db.loginUser(username, password)) {
                 Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
+
                 Intent intent = new Intent(this, DashboardActivity.class);
                 intent.putExtra("username", username);
                 startActivity(intent);
             } else {
-                Toast.makeText(this, "Invalid login. Try again.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Invalid email or password. Please try again.", Toast.LENGTH_SHORT).show();
             }
         });
 
         btnCreateAccount.setOnClickListener(v -> {
-            String username = etEmail.getText().toString().trim();
-            String password = etPassword.getText().toString().trim();
-
-            if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Email and password are required.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            EditText inputGoal = new EditText(this);
-            inputGoal.setHint("Enter goal weight (e.g., 170.0)");
-            inputGoal.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
-
-            new android.app.AlertDialog.Builder(this)
-                    .setTitle("Set Goal Weight")
-                    .setView(inputGoal)
-                    .setPositiveButton("Create", (dialog, which) -> {
-                        String goalStr = inputGoal.getText().toString().trim();
-                        if (goalStr.isEmpty()) {
-                            Toast.makeText(this, "Goal weight is required.", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        double goalWeight = Double.parseDouble(goalStr);
-                        boolean created = db.registerUser(username, password, goalWeight);
-
-                        if (created) {
-                            Toast.makeText(this, "Account created!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(this, "Username already exists!", Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+            Intent intent = new Intent(this, RegisterActivity.class);
+            startActivity(intent);
         });
+    }
+
+    private boolean validateLoginInput(String username, String password) {
+        etEmail.setError(null);
+        etPassword.setError(null);
+
+        if (username.isEmpty()) {
+            etEmail.setError("Email is required.");
+            etEmail.requestFocus();
+            return false;
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(username).matches()) {
+            etEmail.setError("Enter a valid email address.");
+            etEmail.requestFocus();
+            return false;
+        }
+
+        if (password.isEmpty()) {
+            etPassword.setError("Password is required.");
+            etPassword.requestFocus();
+            return false;
+        }
+
+        return true;
     }
 }

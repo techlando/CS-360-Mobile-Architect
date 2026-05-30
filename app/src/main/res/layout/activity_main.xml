@@ -16,7 +16,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"/>
+        android:layout_marginTop="24dp" />
 
     <EditText
         android:id="@+id/etEmail"
@@ -29,7 +29,7 @@
         app:layout_constraintTop_toTopOf="@id/tvTitle"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginTop="84dp"/>
+        android:layout_marginTop="84dp" />
 
     <EditText
         android:id="@+id/etPassword"
@@ -42,7 +42,18 @@
         app:layout_constraintTop_toBottomOf="@id/etEmail"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/btnForgotPassword"
+        style="?attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forgot Password?"
+        app:layout_constraintTop_toBottomOf="@id/etPassword"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="24dp" />
 
     <Button
         android:id="@+id/btnLogin"
@@ -51,10 +62,10 @@
         android:text="Continue"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etPassword"
+        app:layout_constraintTop_toBottomOf="@id/btnForgotPassword"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginTop="24dp"/>
+        android:layout_marginTop="16dp" />
 
     <Button
         android:id="@+id/btnCreateAccount"
@@ -65,5 +76,6 @@
         app:layout_constraintTop_toBottomOf="@id/btnLogin"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"/>
+        android:layout_marginTop="12dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

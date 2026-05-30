@@ -9,11 +9,13 @@ import android.database.Cursor;
 public class Database extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "weight_tracker.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     // User table
     public static final String TABLE_USERS = "users";
     public static final String COLUMN_ID = "id";
+    public static final String COLUMN_FULL_NAME = "full_name";
+    public static final String COLUMN_PHONE = "phone";
     public static final String COLUMN_USERNAME = "username";
     public static final String COLUMN_PASSWORD = "password";
 
@@ -33,6 +35,8 @@ public class Database extends SQLiteOpenHelper {
         // Create users table
         String CREATE_USERS_TABLE = "CREATE TABLE " + TABLE_USERS + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_FULL_NAME + " TEXT NOT NULL, " +
+                COLUMN_PHONE + " TEXT NOT NULL, " +
                 COLUMN_USERNAME + " TEXT NOT NULL UNIQUE, " +
                 COLUMN_PASSWORD + " TEXT NOT NULL, " +
                 "goal_weight REAL)";
@@ -57,10 +61,12 @@ public class Database extends SQLiteOpenHelper {
 
     // --- USER LOGIC ---
 
-    public boolean registerUser(String username, String password, double goalWeight) {
+    public boolean registerUser(String fullName, String phone, String username, String password, double goalWeight) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
+        values.put(COLUMN_FULL_NAME, fullName);
+        values.put(COLUMN_PHONE, phone);
         values.put(COLUMN_USERNAME, username);
         values.put(COLUMN_PASSWORD, password);
         values.put("goal_weight", goalWeight);
@@ -83,14 +89,49 @@ public class Database extends SQLiteOpenHelper {
         return result;
     }
 
+    public boolean userExists(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT * FROM " + TABLE_USERS + " WHERE " + COLUMN_USERNAME + "=?";
+        Cursor cursor = db.rawQuery(query, new String[]{username});
+
+        boolean exists = cursor.getCount() > 0;
+
+        cursor.close();
+        db.close();
+
+        return exists;
+    }
+
+    public boolean updatePassword(String username, String newPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PASSWORD, newPassword);
+
+        int result = db.update(
+                TABLE_USERS,
+                values,
+                COLUMN_USERNAME + "=?",
+                new String[]{username}
+        );
+
+        db.close();
+
+        return result > 0;
+    }
+
     public int getUserId(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
         int userId = -1;
+
         String query = "SELECT " + COLUMN_ID + " FROM " + TABLE_USERS + " WHERE " + COLUMN_USERNAME + "=?";
         Cursor cursor = db.rawQuery(query, new String[]{username});
+
         if (cursor.moveToFirst()) {
             userId = cursor.getInt(0);
         }
+
         cursor.close();
         db.close();
         return userId;
@@ -113,7 +154,10 @@ public class Database extends SQLiteOpenHelper {
 
     public Cursor getWeightsForUser(int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_WEIGHTS + " WHERE " + COLUMN_USER_ID + "=? ORDER BY " + COLUMN_DATE + " DESC";
+
+        String query = "SELECT * FROM " + TABLE_WEIGHTS +
+                " WHERE " + COLUMN_USER_ID + "=? ORDER BY " + COLUMN_DATE + " DESC";
+
         return db.rawQuery(query, new String[]{String.valueOf(userId)});
     }
 
@@ -124,14 +168,26 @@ public class Database extends SQLiteOpenHelper {
         values.put(COLUMN_WEIGHT, newWeight);
         values.put(COLUMN_DATE, newDate);
 
-        int result = db.update(TABLE_WEIGHTS, values, COLUMN_WEIGHT_ID + "=?", new String[]{String.valueOf(weightId)});
+        int result = db.update(
+                TABLE_WEIGHTS,
+                values,
+                COLUMN_WEIGHT_ID + "=?",
+                new String[]{String.valueOf(weightId)}
+        );
+
         db.close();
         return result > 0;
     }
 
     public boolean deleteWeight(int weightId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        int result = db.delete(TABLE_WEIGHTS, COLUMN_WEIGHT_ID + "=?", new String[]{String.valueOf(weightId)});
+
+        int result = db.delete(
+                TABLE_WEIGHTS,
+                COLUMN_WEIGHT_ID + "=?",
+                new String[]{String.valueOf(weightId)}
+        );
+
         db.close();
         return result > 0;
     }
@@ -139,10 +195,16 @@ public class Database extends SQLiteOpenHelper {
     public double getGoalWeight(int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         double goal = -1;
-        Cursor cursor = db.rawQuery("SELECT goal_weight FROM " + TABLE_USERS + " WHERE id=?", new String[]{String.valueOf(userId)});
+
+        Cursor cursor = db.rawQuery(
+                "SELECT goal_weight FROM " + TABLE_USERS + " WHERE id=?",
+                new String[]{String.valueOf(userId)}
+        );
+
         if (cursor.moveToFirst()) {
             goal = cursor.getDouble(0);
         }
+
         cursor.close();
         db.close();
         return goal;
